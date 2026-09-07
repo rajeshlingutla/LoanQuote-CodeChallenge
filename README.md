@@ -8,6 +8,9 @@ You put in amount, term (months), and risk band. Commission rate is per year, so
 
 Node 20+ and npm.
 
+1. Install dependencies from the repo root (`npm install`). Workspaces put `node_modules` at the root and in each package. Run this after a clone, and again if you delete `node_modules`.
+2. Start the stack (`npm run dev`).
+
 ```bash
 npm install
 npm run dev
@@ -21,7 +24,7 @@ Open http://localhost:5173
 
 `/api` on the UI is proxied to the BFF. The UI calls GraphQL at `/api/graphql`. Don't call the mock from the browser.
 
-One-off:
+One-off (after `npm install`):
 
 ```bash
 npm run dev:mock
@@ -32,6 +35,8 @@ npm run dev:web
 Mock first, then BFF, then web.
 
 ## tests
+
+After `npm install`:
 
 ```bash
 npm test
