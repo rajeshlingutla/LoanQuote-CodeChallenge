@@ -1,0 +1,18 @@
+{
+  "name": "app",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "services/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n mock,bff,web -c yellow,cyan,magenta \"npm run dev:mock\" \"npm run dev:bff\" \"npm run dev:web\"",
+    "dev:web": "npm run dev -w web",
+    "dev:bff": "npm run dev -w bff",
+    "dev:mock": "npm run dev -w mock",
+    "test": "npm run test -w web && npm run test -w bff && npm run test -w mock"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

@@ -1,0 +1,83 @@
+main {
+  padding: 48px 32px;
+  text-align: left;
+}
+
+.lede {
+  margin: 0 0 24px;
+  max-width: 40rem;
+}
+
+.quote-form {
+  display: grid;
+  gap: 16px;
+  max-width: 28rem;
+  margin-bottom: 24px;
+}
+
+.quote-form label {
+  display: grid;
+  gap: 6px;
+  color: var(--text-h);
+}
+
+.quote-form input,
+.quote-form select,
+.quote-form button {
+  font: inherit;
+  font-family: var(--mono);
+  padding: 8px 14px;
+  border-radius: 6px;
+}
+
+.quote-form input,
+.quote-form select {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+}
+
+.quote-form button {
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+
+.quote-form button:hover {
+  border-color: var(--accent-border);
+}
+
+.quote-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.quote-result {
+  margin: 0 0 40px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  max-width: 28rem;
+}
+
+.quote-result dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px 16px;
+  margin: 12px 0 0;
+}
+
+.quote-result dt {
+  color: var(--text);
+}
+
+.quote-result dd {
+  margin: 0;
+  color: var(--text-h);
+  font-family: var(--mono);
+}
+
+.error {
+  color: #c44545;
+}
