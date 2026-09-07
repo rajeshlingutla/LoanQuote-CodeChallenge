@@ -4,8 +4,6 @@ React UI, Express 5 BFF (GraphQL), Express mock (REST).
 
 You put in amount, term (months), and risk band. Commission rate is per year, so the mock/BFF convert months to years for the total.
 
-Used plan mode from Claude.
-
 ## run
 
 Node 20+ and npm.
