@@ -1,21 +1,8 @@
+import { useMutation } from "@apollo/client/react";
 import { type FormEvent, useState } from "react";
 import "./App.css";
-import { API_KEY } from "./config";
-import { RETRY_LATER_MESSAGE } from "./errors";
-import { CREATE_QUOTE } from "./quoteQuery";
-
-type QuoteResponse = {
-  quoteId: string;
-  commissionRate: number;
-  totalCommission: number;
-};
-
-function apiHeaders(): HeadersInit {
-  return {
-    "content-type": "application/json",
-    "x-api-key": API_KEY,
-  };
-}
+import { quoteErrorMessage } from "./quoteErrors";
+import { CREATE_QUOTE, type QuoteResponse } from "./quoteQuery";
 
 function App() {
   const [loanAmount, setLoanAmount] = useState("25000");
@@ -23,69 +10,28 @@ function App() {
   const [riskBand, setRiskBand] = useState("A");
   const [quote, setQuote] = useState<QuoteResponse | null>(null);
   const [quoteError, setQuoteError] = useState<string | null>(null);
-  const [quoting, setQuoting] = useState(false);
+  const [createQuote, { loading }] = useMutation(CREATE_QUOTE);
 
   async function requestQuote(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setQuoting(true);
     setQuoteError(null);
     setQuote(null);
 
     try {
-      const response = await fetch("/api/graphql", {
-        method: "POST",
-        headers: apiHeaders(),
-        body: JSON.stringify({
-          query: CREATE_QUOTE,
-          variables: {
-            input: {
-              loanAmount: Number(loanAmount),
-              loanTermInMonths: Number(loanTermInMonths),
-              riskBand,
-            },
+      const { data } = await createQuote({
+        variables: {
+          input: {
+            loanAmount: Number(loanAmount),
+            loanTermInMonths: Number(loanTermInMonths),
+            riskBand,
           },
-        }),
+        },
       });
-
-      let payload: {
-        data?: { createQuote?: QuoteResponse };
-        errors?: { message?: string }[];
-        error?: string;
-      };
-      try {
-        payload = (await response.json()) as typeof payload;
-      } catch {
-        setQuoteError(RETRY_LATER_MESSAGE);
-        return;
+      if (data?.createQuote) {
+        setQuote(data.createQuote);
       }
-
-      if (response.status === 401) {
-        setQuoteError(payload.error ?? "Unauthorised");
-        return;
-      }
-      if (!response.ok) {
-        setQuoteError(RETRY_LATER_MESSAGE);
-        return;
-      }
-
-      const graphqlError = payload.errors?.[0]?.message;
-      if (graphqlError) {
-        setQuoteError(
-          graphqlError.includes("retry") ? RETRY_LATER_MESSAGE : graphqlError,
-        );
-        return;
-      }
-
-      const nextQuote = payload.data?.createQuote;
-      if (!nextQuote) {
-        setQuoteError(RETRY_LATER_MESSAGE);
-        return;
-      }
-      setQuote(nextQuote);
-    } catch {
-      setQuoteError(RETRY_LATER_MESSAGE);
-    } finally {
-      setQuoting(false);
+    } catch (error) {
+      setQuoteError(quoteErrorMessage(error));
     }
   }
 
@@ -136,8 +82,8 @@ function App() {
             <option value="C">C — higher risk</option>
           </select>
         </label>
-        <button type="submit" disabled={quoting}>
-          {quoting ? "Requesting quote…" : "Get quote"}
+        <button type="submit" disabled={loading}>
+          {loading ? "Requesting quote…" : "Get quote"}
         </button>
       </form>
 
