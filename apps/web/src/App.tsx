@@ -2,6 +2,7 @@ import { type FormEvent, useState } from "react";
 import "./App.css";
 import { API_KEY } from "./config";
 import { RETRY_LATER_MESSAGE } from "./errors";
+import { CREATE_QUOTE } from "./quoteQuery";
 
 type QuoteResponse = {
   quoteId: string;
@@ -31,40 +32,56 @@ function App() {
     setQuote(null);
 
     try {
-      const response = await fetch("/api/quotes", {
+      const response = await fetch("/api/graphql", {
         method: "POST",
         headers: apiHeaders(),
         body: JSON.stringify({
-          loanAmount: Number(loanAmount),
-          loanTermInMonths: Number(loanTermInMonths),
-          riskBand,
+          query: CREATE_QUOTE,
+          variables: {
+            input: {
+              loanAmount: Number(loanAmount),
+              loanTermInMonths: Number(loanTermInMonths),
+              riskBand,
+            },
+          },
         }),
       });
 
-      let data: (QuoteResponse & { error?: string }) | null = null;
+      let payload: {
+        data?: { createQuote?: QuoteResponse };
+        errors?: { message?: string }[];
+        error?: string;
+      };
       try {
-        data = (await response.json()) as QuoteResponse & { error?: string };
+        payload = (await response.json()) as typeof payload;
       } catch {
         setQuoteError(RETRY_LATER_MESSAGE);
         return;
       }
 
       if (response.status === 401) {
-        setQuoteError(data.error ?? "Unauthorised");
-        return;
-      }
-      if (response.status === 400) {
-        setQuoteError(
-          data.error ??
-            "loanAmount, loanTermInMonths, and riskBand are required with valid values",
-        );
+        setQuoteError(payload.error ?? "Unauthorised");
         return;
       }
       if (!response.ok) {
         setQuoteError(RETRY_LATER_MESSAGE);
         return;
       }
-      setQuote(data);
+
+      const graphqlError = payload.errors?.[0]?.message;
+      if (graphqlError) {
+        setQuoteError(
+          graphqlError.includes("retry") ? RETRY_LATER_MESSAGE : graphqlError,
+        );
+        return;
+      }
+
+      const nextQuote = payload.data?.createQuote;
+      if (!nextQuote) {
+        setQuoteError(RETRY_LATER_MESSAGE);
+        return;
+      }
+      setQuote(nextQuote);
     } catch {
       setQuoteError(RETRY_LATER_MESSAGE);
     } finally {

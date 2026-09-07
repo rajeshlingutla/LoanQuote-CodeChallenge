@@ -1,6 +1,6 @@
 # loan quote
 
-React UI, Express 5 BFF, Express mock.
+React UI, Express 5 BFF (GraphQL), Express mock (REST).
 
 You put in amount, term (months), and risk band. Commission rate is per year, so the mock/BFF convert months to years for the total.
 
@@ -21,7 +21,7 @@ Open http://localhost:5173
 - bff: 3000
 - mock: 4000
 
-`/api` on the UI is proxied to the BFF. Don't call the mock from the browser.
+`/api` on the UI is proxied to the BFF. The UI calls GraphQL at `/api/graphql`. Don't call the mock from the browser.
 
 One-off:
 

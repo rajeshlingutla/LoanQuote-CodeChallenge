@@ -4,7 +4,6 @@ import express, {
   type Response,
 } from "express";
 import { randomUUID } from "node:crypto";
-import { calculateTotalCommission } from "./commission.js";
 import { shouldSimulateNetworkIssue } from "./network.js";
 
 const PORT = Number(process.env.PORT ?? 4000);
@@ -19,10 +18,6 @@ const COMMISSION_RATES: Record<string, number> = {
 const app = express();
 
 app.use(express.json());
-
-app.get("/health", (_req: Request, res: Response) => {
-  res.status(200).json({ status: "ok", service: "mock" });
-});
 
 app.post("/quotes", (req: Request, res: Response) => {
   const { loanAmount, loanTermInMonths, riskBand } = req.body as {
@@ -59,12 +54,6 @@ app.post("/quotes", (req: Request, res: Response) => {
   res.status(200).json({
     quoteId: randomUUID(),
     commissionRate,
-    totalCommission: calculateTotalCommission(
-      loanAmount,
-      commissionRate,
-      loanTermInMonths,
-    ),
-    loanTermInMonths,
   });
 });
 

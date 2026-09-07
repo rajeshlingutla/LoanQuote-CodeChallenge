@@ -32,16 +32,26 @@ describe("maskBody", () => {
   it("redacts loan amount and total commission", () => {
     expect(
       maskBody({
-        loanAmount: 25000,
-        loanTermInMonths: 36,
-        riskBand: "A",
-        totalCommission: 1125,
+        query: "mutation",
+        variables: {
+          input: {
+            loanAmount: 25000,
+            loanTermInMonths: 36,
+            riskBand: "A",
+            totalCommission: 1125,
+          },
+        },
       }),
     ).toEqual({
-      loanAmount: "[REDACTED]",
-      loanTermInMonths: 36,
-      riskBand: "A",
-      totalCommission: "[REDACTED]",
+      query: "mutation",
+      variables: {
+        input: {
+          loanAmount: "[REDACTED]",
+          loanTermInMonths: 36,
+          riskBand: "A",
+          totalCommission: "[REDACTED]",
+        },
+      },
     });
   });
 });

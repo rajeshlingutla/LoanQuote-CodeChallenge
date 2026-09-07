@@ -15,26 +15,39 @@ function jsonResponse(status: number, body: unknown) {
   });
 }
 
+function quoteFromGraphqlBody(raw: string) {
+  const parsed = JSON.parse(raw) as {
+    variables: {
+      input: {
+        loanAmount: number;
+        loanTermInMonths: number;
+        riskBand: string;
+      };
+    };
+  };
+  return parsed.variables.input;
+}
+
 describe("Loan quote form", () => {
   beforeEach(() => {
     global.fetch = jest.fn((input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
-      if (url === "/api/quotes" && init?.method === "POST") {
+      if (url === "/api/graphql" && init?.method === "POST") {
         expect(init.headers).toEqual(
           expect.objectContaining({ "x-api-key": "local-dev-key" }),
         );
-        const body = JSON.parse(String(init.body)) as {
-          loanAmount: number;
-          loanTermInMonths: number;
-          riskBand: string;
-        };
+        const body = quoteFromGraphqlBody(String(init.body));
         const rate = body.riskBand === "B" ? 0.025 : 0.015;
         const years = body.loanTermInMonths / 12;
         return jsonResponse(200, {
-          quoteId: "quote-123",
-          commissionRate: rate,
-          totalCommission:
-            Math.round(body.loanAmount * rate * years * 100) / 100,
+          data: {
+            createQuote: {
+              quoteId: "quote-123",
+              commissionRate: rate,
+              totalCommission:
+                Math.round(body.loanAmount * rate * years * 100) / 100,
+            },
+          },
         });
       }
       return jsonResponse(404, { error: "not found" });
@@ -70,7 +83,7 @@ describe("Loan quote form", () => {
   it("shows Unauthorised when the BFF rejects a missing API key", async () => {
     (global.fetch as jest.Mock).mockImplementation(
       (input: RequestInfo | URL, init?: RequestInit) => {
-        if (String(input) === "/api/quotes") {
+        if (String(input) === "/api/graphql") {
           expect(init?.headers).toEqual(
             expect.objectContaining({ "x-api-key": "local-dev-key" }),
           );
@@ -89,8 +102,10 @@ describe("Loan quote form", () => {
 
   it("shows a retry message when the quote request fails like a network issue", async () => {
     (global.fetch as jest.Mock).mockImplementation((input: RequestInfo | URL) => {
-      if (String(input) === "/api/quotes") {
-        return jsonResponse(503, { error: RETRY_LATER_MESSAGE });
+      if (String(input) === "/api/graphql") {
+        return jsonResponse(200, {
+          errors: [{ message: RETRY_LATER_MESSAGE }],
+        });
       }
       return jsonResponse(404, {});
     });

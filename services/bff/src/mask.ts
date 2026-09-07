@@ -38,7 +38,10 @@ export function maskHeaders(
 }
 
 export function maskBody(body: unknown): unknown {
-  if (body == null || typeof body !== "object" || Array.isArray(body)) {
+  if (Array.isArray(body)) {
+    return body.map((item) => maskBody(item));
+  }
+  if (body == null || typeof body !== "object") {
     return body;
   }
 
@@ -47,7 +50,7 @@ export function maskBody(body: unknown): unknown {
     if (SENSITIVE_BODY_KEYS.has(key.toLowerCase())) {
       out[key] = "[REDACTED]";
     } else {
-      out[key] = value;
+      out[key] = maskBody(value);
     }
   }
   return out;
